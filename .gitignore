@@ -1,0 +1,14 @@
+# Secretos
+.env
+
+# Dependencias
+node_modules/
+
+# Sistema
+.DS_Store
+
+# Temporales de Word
+~$*
+
+# Documento de la entrega (se sube aparte, no va al repositorio)
+docs/
