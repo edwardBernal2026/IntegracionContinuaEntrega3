@@ -1,0 +1,14 @@
+{
+  "name": "notas-api",
+  "version": "1.0.0",
+  "description": "API de notas que se comunica con PostgreSQL por el nombre del servicio en la red de Docker",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "express": "4.22.3",
+    "pg": "8.23.1"
+  },
+  "license": "MIT"
+}
