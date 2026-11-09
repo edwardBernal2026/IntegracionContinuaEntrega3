@@ -1,0 +1,56 @@
+name: entrega3
+
+services:
+  # Contenedor 2: base de datos PostgreSQL
+  db:
+    build:
+      context: ./db
+    image: entrega3-db:1.0.0
+    container_name: notas-db
+    restart: unless-stopped
+    # Variables: valores de ejemplo de .env.example; si existe .env, este los reemplaza
+    env_file:
+      - path: .env.example
+      - path: .env
+        required: false
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - red_notas
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Contenedor 1: API de notas
+  app:
+    build:
+      context: ./app
+    image: entrega3-app:1.0.0
+    container_name: notas-app
+    restart: unless-stopped
+    env_file:
+      - path: .env.example
+      - path: .env
+        required: false
+    environment:
+      DB_HOST: db            # nombre del servicio dentro de la red de Docker
+      DB_PORT: 5432
+      APP_PORT: 3000
+    ports:
+      - "${APP_HOST_PORT:-3000}:3000"
+    networks:
+      - red_notas
+    depends_on:
+      db:
+        condition: service_healthy
+
+networks:
+  red_notas:
+    name: red_notas
+    driver: bridge
+
+volumes:
+  db_data:
+    name: notas_db_data
