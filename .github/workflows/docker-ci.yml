@@ -1,0 +1,43 @@
+name: Docker CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v5
+
+      - name: Crear .env desde la plantilla (el .env real no está en el repositorio)
+        env:
+          CI_DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        run: |
+          cp .env.example .env
+          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=${CI_DB_PASSWORD:-$(openssl rand -hex 16)}/" .env
+
+      - name: Validar docker-compose.yml
+        run: docker compose config --quiet
+
+      - name: Construir imagen de la aplicación
+        run: docker build -t entrega3-app:ci ./app
+
+      - name: Construir imagen de la base de datos
+        run: docker build -t entrega3-db:ci ./db
+
+      - name: Levantar los servicios con Docker Compose
+        run: docker compose up -d --build --wait
+
+      - name: Prueba de comunicación app -> db (ida y vuelta)
+        run: sh scripts/prueba-comunicacion.sh
+
+      - name: Logs de los contenedores
+        if: always()
+        run: docker compose logs
+
+      - name: Apagar los servicios
+        if: always()
+        run: docker compose down -v
